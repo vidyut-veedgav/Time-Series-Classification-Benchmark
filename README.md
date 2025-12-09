@@ -1,40 +1,34 @@
-# Deep Learning for Time Series
+# Deep Learning for Time Series Classification
 
-AI4DB Course Project: Comparing deep learning architectures for time series analysis.
+AI4DB Course Project: Comprehensive benchmarking of deep learning architectures for time series classification with hyperparameter optimization.
 
 ## Overview
 
-This project benchmarks neural network architectures on time series tasks:
+This project benchmarks 4 neural network architectures on time series classification tasks with extensive hyperparameter search:
 
 | Architecture | Description |
 |--------------|-------------|
-| Transformer | Self-attention based encoder with positional encoding |
-| LSTM | Long Short-Term Memory with bidirectional support |
-| CNN | 1D convolutions with residual connections |
-| RNN | GRU-based recurrent network |
-| VAE | Variational Autoencoder for anomaly detection |
-| STL | STL decomposition with neural network components |
-| ImageCNN | 2D CNN on spectrogram/GAF/recurrence plot representations |
+| LSTM | Long Short-Term Memory with bidirectional support and dropout |
+| RNN | GRU-based recurrent network with bidirectional option |
+| CNN | 1D convolutions with residual connections and batch normalization |
+| VAE | Variational Autoencoder adapted for classification tasks |
 
-## Tasks
+## Task
 
-1. Classification: Predict class labels from time series (UCR datasets)
-2. Forecasting: Predict future values (ETT dataset)
-3. Anomaly Detection: Identify anomalous patterns (synthetic data)
-4. Medical: ECG arrhythmia classification (MIT-BIH Arrhythmia Database)
+**Classification**: Predict class labels from univariate time series (UCR Archive datasets)
+
+The experiment performs comprehensive hyperparameter search:
+- **4 models** × **2 datasets** × **4 hyperparameter configurations** = **32 total experiments**
+- Automated generation of performance comparisons, statistical summaries, and visualizations
 
 ## Datasets
 
-Datasets and model weights are excluded from version control via `.gitignore`. Each user should download data locally.
+Datasets are excluded from version control via `.gitignore`. Download them before running experiments.
 
-| Dataset | Task | Source | Description |
-|---------|------|--------|-------------|
-| ECG200 | Classification | UCR Archive | ECG heartbeat classification |
-| ECG5000 | Classification | UCR Archive | Larger ECG dataset |
-| FordA | Classification | UCR Archive | Engine sensor classification |
-| ETTh1/ETTm1 | Forecasting | ETDataset | Electricity transformer temperature |
-| MIT-BIH | Classification | PhysioNet | 3-class arrhythmia (Normal, Supraventricular, Ventricular) |
-| Synthetic | Anomaly | Generated | Synthetic anomaly detection data |
+| Dataset | Source | Description | Train Size | Test Size | Sequence Length | Classes |
+|---------|--------|-------------|------------|-----------|-----------------|---------|
+| FordA | UCR Archive | Engine sensor classification | 3601 | 1320 | 500 | 2 |
+| ECG200 | UCR Archive | ECG heartbeat classification | 100 | 100 | 96 | 2 |
 
 ## Project Structure
 
@@ -43,29 +37,27 @@ Datasets and model weights are excluded from version control via `.gitignore`. E
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
-├── main.py
-├── data/                 # Downloaded datasets (gitignored)
-│   ├── ucr/
-│   ├── ett/
-│   ├── medical/
-│   └── anomaly/
-├── weights/              # Model checkpoints (gitignored)
-├── results/
+├── main.py              # Main experiment orchestration with hyperparameter search
+├── old_main.py          # Legacy experiment script
+├── data/                # Downloaded datasets (gitignored)
+│   └── ucr/
+│       ├── FordA/
+│       └── ECG200/
+├── results/             # Experiment results and visualizations
+│   ├── *.csv            # Performance metrics tables
+│   └── plots/           # Training curves and comparison plots
 └── src/
     ├── __init__.py
-    ├── download_data.py
-    ├── data_loader.py
-    ├── benchmark.py
-    ├── plots.py
+    ├── download_data.py # Dataset download utilities
+    ├── data_loader.py   # PyTorch data loaders
+    ├── benchmark.py     # Training and evaluation utilities
+    ├── plots.py         # Visualization utilities
     └── models/
         ├── __init__.py
-        ├── transformer.py
-        ├── lstm.py
-        ├── cnn.py
-        ├── rnn.py
-        ├── vae.py
-        ├── stl.py
-        └── image_cnn.py
+        ├── lstm.py      # LSTM classifier
+        ├── cnn.py       # 1D CNN classifier
+        ├── rnn.py       # GRU-based RNN classifier
+        └── vae.py       # VAE classifier
 ```
 
 ## Setup
@@ -107,143 +99,165 @@ pip install -r requirements.txt
 
 ### Step 1: Download datasets
 
-Datasets are not included in the repository. Run this first to download all required data:
+Datasets are not included in the repository. Download them first:
 
 ```bash
-python -c "from src.download_data import download_all_datasets; download_all_datasets()"
-```
-
-Or download and run experiments in one command:
-
-```bash
-python main.py --download --task all
+python -c "from src.download_data import download_ucr_dataset; download_ucr_dataset('FordA'); download_ucr_dataset('ECG200')"
 ```
 
 ### Step 2: Run experiments
 
+Run all experiments with default settings (50 epochs, both datasets, all models):
+
 ```bash
-python main.py --task all --epochs 50
+python main.py --epochs 50
 ```
 
-### Run specific tasks
+### Customize experiments
 
-Classification:
+Run specific datasets:
 ```bash
-python main.py --task classification --dataset ECG200 --epochs 50
+python main.py --epochs 50 --datasets FordA
 ```
 
-Forecasting:
+Run specific models:
 ```bash
-python main.py --task forecasting --dataset ETTh1.csv --epochs 50
+python main.py --epochs 50 --models LSTM CNN
 ```
 
-Anomaly detection:
+Run single dataset with subset of models:
 ```bash
-python main.py --task anomaly --epochs 50
+python main.py --epochs 50 --datasets ECG200 --models LSTM RNN
 ```
 
-Medical ECG classification:
-```bash
-python main.py --task medical --epochs 50
-```
+## Hyperparameter Search
+
+The main script performs grid search over the following hyperparameter spaces:
+
+### LSTM
+- `hidden_size`: [64, 128]
+- `n_layers`: [1, 2]
+- `bidirectional`: [False]
+- **Total**: 4 configurations per dataset
+
+### RNN (GRU)
+- `hidden_size`: [64, 128]
+- `n_layers`: [1, 2]
+- `use_gru`: [True]
+- **Total**: 4 configurations per dataset
+
+### CNN
+- `n_filters`: [32, 64]
+- `n_blocks`: [2, 3]
+- `kernel_size`: [3]
+- **Total**: 4 configurations per dataset
+
+### VAE
+- `hidden_size`: [32, 64]
+- `latent_dim`: [8, 16]
+- `n_layers`: [1]
+- **Total**: 4 configurations per dataset
 
 ## Model Details
 
-### Transformer
-
-Based on the original architecture with modifications for time series:
-- Positional encoding for temporal information
-- Mean pooling over sequence for classification
-- Encoder-decoder architecture for forecasting
-
 ### LSTM
 
-Bidirectional LSTM with attention mechanism:
+Bidirectional LSTM classifier:
 - Multi-layer stacked LSTM cells
-- Attention for forecasting tasks
+- Optional bidirectional processing
+- Dropout for regularization
 - Final hidden state for classification
-
-### CNN
-
-1D convolutional network with residual connections:
-- Batch normalization
-- Dilated convolutions for large receptive fields
-- Global average pooling for classification
 
 ### RNN
 
 GRU-based recurrent network:
-- Bidirectional option for classification
-- Encoder-decoder for forecasting
+- Multi-layer stacked GRU cells
+- Bidirectional option enabled by default
 - Simpler than LSTM with comparable performance
+- Dropout for regularization
+
+### CNN
+
+1D convolutional network with residual connections:
+- Batch normalization after each conv layer
+- ReLU activation
+- Multiple residual blocks
+- Global average pooling for classification
+- Dropout for regularization
 
 ### VAE
 
-Variational Autoencoder for unsupervised anomaly detection:
+Variational Autoencoder adapted for classification:
 - LSTM encoder and decoder
-- Reconstruction error as anomaly score
-- Threshold-based detection
-
-### STL (Seasonal-Trend Decomposition)
-
-Hybrid classical/neural approach:
-- Decomposes signal into trend, seasonal, and residual components
-- Separate neural networks model each component
-- Combines predictions for final output
-
-### ImageCNN
-
-Treats 1D time series as 2D images:
-- Converts signals to spectrograms (STFT-based)
-- Gramian Angular Field (GAF) transformation
-- Recurrence plot representation
-- Standard 2D CNN for classification
-- MultiScale variant combines all three representations
+- Learns latent representation
+- Classification head on latent features
+- KL divergence regularization
 
 ## Metrics
 
-Classification:
-- Accuracy
-- F1 Score (macro and weighted)
-- Precision
-- Recall
-
-Forecasting:
-- MSE (Mean Squared Error)
-- MAE (Mean Absolute Error)
-- RMSE (Root Mean Squared Error)
-- R2 Score
-
-Anomaly Detection:
-- Precision
-- Recall
-- F1 Score
+All experiments report the following classification metrics:
+- **Accuracy**: Overall classification accuracy
+- **Precision**: Macro-averaged precision
+- **Recall**: Macro-averaged recall
+- **F1 Score**: Both macro and weighted F1 scores
+- **Training Time**: Total training time in seconds
+- **Inference Time**: Test set inference time in seconds
+- **Parameters**: Number of trainable parameters
 
 ## Results
 
-Results are saved to the `results/` directory:
-- JSON files with metrics and training history
-- PNG plots for training curves and comparisons
+Results are automatically saved to the `results/` directory:
+
+### CSV Tables
+- `complete_results.csv`: All experimental results with hyperparameters
+- `{dataset}_results.csv`: Per-dataset performance summary
+- `best_configurations.csv`: Best configuration per model per dataset
+- `statistical_summary.csv`: Mean, std, min, max for each model
+- `top5_configurations.csv`: Top 5 configurations overall
+
+### Visualizations (PNG)
+- `loss_curves_{dataset}.png`: Training loss over epochs for all configurations
+- `performance_metrics.png`: Accuracy, precision, recall, F1 comparison
+- `time_analysis.png`: Training/inference time vs accuracy tradeoffs
+- `cross_dataset_comparison.png`: Performance comparison across FordA and ECG200
+
+## Example Output
+
+After running experiments, you'll see:
+
+```
+Results saved to: results/
+Visualizations saved to: results/plots/
+
+Key files generated:
+  CSV Tables:
+    - complete_results.csv
+    - best_configurations.csv
+    - statistical_summary.csv
+    - top5_configurations.csv
+
+  Visualizations:
+    - loss_curves_FordA.png & loss_curves_ECG200.png
+    - performance_metrics.png
+    - time_analysis.png
+    - cross_dataset_comparison.png
+```
 
 ## Dependencies
 
 - PyTorch >= 2.0
-- NumPy
-- Pandas
-- Scikit-learn
-- Matplotlib
-- Seaborn
-- SciPy
-- tqdm
-- wfdb (for PhysioNet data access)
+- NumPy >= 1.24
+- Pandas >= 2.0
+- Scikit-learn >= 1.3
+- Matplotlib >= 3.7
+- Seaborn >= 0.12
+- SciPy >= 1.11
+- tqdm >= 4.65
+- requests >= 2.31
 
 ## References
 
 - UCR Time Series Archive: https://www.timeseriesclassification.com/
-- ETDataset: https://github.com/zhouhaoyi/ETDataset
-- MIT-BIH Arrhythmia Database: https://physionet.org/content/mitdb/
-- Vaswani et al. "Attention Is All You Need" (2017)
 - Hochreiter and Schmidhuber "Long Short-Term Memory" (1997)
+- Cho et al. "Learning Phrase Representations using RNN Encoder-Decoder" (2014)
 - Kingma and Welling "Auto-Encoding Variational Bayes" (2013)
-- Cleveland et al. "STL: A Seasonal-Trend Decomposition" (1990)
-- Wang and Oates "Imaging Time-Series to Improve Classification" (2015)
