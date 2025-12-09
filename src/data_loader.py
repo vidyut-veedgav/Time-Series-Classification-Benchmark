@@ -97,22 +97,48 @@ def load_ucr_dataset(
     """
     dataset_dir = DATA_DIR / "ucr" / dataset_name
 
+    # Try .tsv first, then .ts extension
     train_file = dataset_dir / f"{dataset_name}_TRAIN.tsv"
     test_file = dataset_dir / f"{dataset_name}_TEST.tsv"
+
+    if not train_file.exists():
+        train_file = dataset_dir / f"{dataset_name}_TRAIN.ts"
+        test_file = dataset_dir / f"{dataset_name}_TEST.ts"
 
     if not train_file.exists():
         raise FileNotFoundError(
             f"Dataset {dataset_name} not found. Run download_data.py first."
         )
 
-    train_df = pd.read_csv(train_file, sep="\t", header=None)
-    test_df = pd.read_csv(test_file, sep="\t", header=None)
+    # UCR format has metadata headers followed by @data, then CSV with label at end
+    def parse_ucr_file(filepath):
+        with open(filepath, 'r') as f:
+            lines = f.readlines()
 
-    train_labels = train_df.iloc[:, 0].values
-    train_data = train_df.iloc[:, 1:].values
+        # Find where actual data starts (after @data line)
+        data_start = 0
+        for i, line in enumerate(lines):
+            if line.strip() == '@data':
+                data_start = i + 1
+                break
 
-    test_labels = test_df.iloc[:, 0].values
-    test_data = test_df.iloc[:, 1:].values
+        # Parse data lines (format: feature1,feature2,...:label)
+        data_list = []
+        label_list = []
+        for line in lines[data_start:]:
+            line = line.strip()
+            if line and not line.startswith('#'):
+                parts = line.rsplit(':', 1)  # Split on last colon
+                if len(parts) == 2:
+                    features = [float(x) for x in parts[0].split(',')]
+                    label = float(parts[1])
+                    data_list.append(features)
+                    label_list.append(label)
+
+        return np.array(data_list), np.array(label_list)
+
+    train_data, train_labels = parse_ucr_file(train_file)
+    test_data, test_labels = parse_ucr_file(test_file)
 
     unique_labels = np.unique(np.concatenate([train_labels, test_labels]))
     label_map = {label: idx for idx, label in enumerate(unique_labels)}
@@ -120,9 +146,10 @@ def load_ucr_dataset(
     test_labels = np.array([label_map[l] for l in test_labels])
 
     if normalize:
+        # Normalize each sample independently (z-score normalization per time series)
         scaler = StandardScaler()
-        train_data = scaler.fit_transform(train_data.T).T
-        test_data = scaler.transform(test_data.T).T
+        train_data = scaler.fit_transform(train_data)
+        test_data = scaler.transform(test_data)
 
     train_data = train_data[:, :, np.newaxis]
     test_data = test_data[:, :, np.newaxis]

@@ -43,6 +43,9 @@ def download_ucr_dataset(dataset_name: str = "ECG200") -> Path:
             for member in zf.namelist():
                 if member.endswith(".tsv") or member.endswith(".ts"):
                     filename = os.path.basename(member)
+                    # Ensure .ts files are saved as .tsv
+                    if filename.endswith(".ts"):
+                        filename = filename.replace(".ts", ".tsv")
                     with open(dataset_dir / filename, "wb") as f:
                         f.write(zf.read(member))
 
