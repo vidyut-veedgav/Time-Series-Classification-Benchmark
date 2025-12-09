@@ -129,10 +129,12 @@ pip install -r requirements_visual.txt
 python -c "from src.download_data import download_all_datasets; download_all_datasets()"
 ```
 
-### 3. Train a demo model (~5 seconds)
+### 3. Train demo models (~30 seconds)
 ```bash
 python scripts/train_demo_models.py
 ```
+
+This trains all 4 models: LSTM (77%), RNN (84%), CNN (82%), and VAE (76%).
 
 ### 4. Launch the interactive demo
 ```bash
@@ -141,11 +143,10 @@ streamlit run src/visual_apps/app.py
 
 Your browser will open at `http://localhost:8501` with an interactive interface to:
 - Explore predictions on individual ECG samples
-- View model confidence scores
-- Visualize time series data
-- Compare different models (after training more)
-
-**For full documentation**: See [QUICKSTART_VISUAL.md](QUICKSTART_VISUAL.md) or [README_VISUAL.md](README_VISUAL.md)
+- Compare all 4 model architectures (LSTM vs RNN vs CNN vs VAE)
+- View model confidence scores and compare behaviors
+- Visualize time series data interactively
+- Understand differences between recurrent, convolutional, and variational models
 
 ---
 

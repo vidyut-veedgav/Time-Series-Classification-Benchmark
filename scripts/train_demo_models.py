@@ -77,7 +77,7 @@ def train_and_save_demo_models(
     """Train best configuration for each model and save checkpoints."""
 
     if model_names is None:
-        model_names = ["LSTM"]  # MVP: Just LSTM
+        model_names = ["LSTM", "RNN", "CNN", "VAE"]  # Default: All 4 models
 
     # Auto-detect device
     if device == "auto":
@@ -174,9 +174,9 @@ def main():
     parser.add_argument(
         "--models",
         nargs="+",
-        default=["LSTM"],
+        default=["LSTM", "RNN", "CNN", "VAE"],
         choices=["LSTM", "RNN", "CNN", "VAE"],
-        help="Models to train (default: LSTM for MVP)"
+        help="Models to train (default: all 4 models)"
     )
     parser.add_argument(
         "--dataset",
