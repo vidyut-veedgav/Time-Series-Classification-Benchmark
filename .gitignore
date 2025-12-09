@@ -3,8 +3,8 @@ old_main.py
 
 # Datasets
 data/
-*.csv
-*.tsv
+data/**/*.csv
+data/**/*.tsv
 *.zip
 
 # Model weights

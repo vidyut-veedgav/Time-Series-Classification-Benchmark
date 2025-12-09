@@ -1,0 +1,6 @@
+model,dataset,hyperparams,accuracy,f1_macro,train_time
+RNN,ECG200,"{'hidden_size': 64, 'n_layers': 2, 'use_gru': True}",0.84,0.82174688057041,7.239400148391724
+RNN,ECG200,"{'hidden_size': 128, 'n_layers': 1, 'use_gru': True}",0.84,0.8190863862505653,5.0825371742248535
+CNN,ECG200,"{'n_filters': 64, 'n_blocks': 2, 'kernel_size': 3}",0.82,0.7896213183730716,10.475796937942505
+CNN,ECG200,"{'n_filters': 64, 'n_blocks': 3, 'kernel_size': 3}",0.82,0.8046875,36.028908014297485
+RNN,ECG200,"{'hidden_size': 128, 'n_layers': 2, 'use_gru': True}",0.81,0.7867803837953091,11.46409010887146
