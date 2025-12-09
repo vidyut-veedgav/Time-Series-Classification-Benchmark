@@ -37,27 +37,47 @@ Datasets are excluded from version control via `.gitignore`. Download them befor
 ├── .gitignore
 ├── README.md
 ├── requirements.txt
-├── main.py              # Main experiment orchestration with hyperparameter search
-├── old_main.py          # Legacy experiment script
-├── data/                # Downloaded datasets (gitignored)
+├── requirements_visual.txt   # Dependencies for interactive demo
+├── main.py                   # Main experiment orchestration with hyperparameter search
+├── old_main.py               # Legacy experiment script
+├── QUICKSTART_VISUAL.md      # Quick start guide for demo
+├── README_VISUAL.md          # Full documentation for demo
+├── data/                     # Downloaded datasets (gitignored)
 │   └── ucr/
 │       ├── FordA/
 │       └── ECG200/
-├── results/             # Experiment results and visualizations
-│   ├── *.csv            # Performance metrics tables
-│   └── plots/           # Training curves and comparison plots
+├── results/                  # Experiment results and visualizations
+│   ├── *.csv                 # Performance metrics tables
+│   └── plots/                # Training curves and comparison plots
+├── checkpoints/              # Pre-trained models for demo (gitignored)
+│   └── ecg200_best/
+│       ├── lstm.pt
+│       ├── rnn.pt
+│       ├── cnn.pt
+│       └── vae.pt
+├── scripts/
+│   └── train_demo_models.py  # Train models for interactive demo
 └── src/
     ├── __init__.py
-    ├── download_data.py # Dataset download utilities
-    ├── data_loader.py   # PyTorch data loaders
-    ├── benchmark.py     # Training and evaluation utilities
-    ├── plots.py         # Visualization utilities
-    └── models/
+    ├── download_data.py      # Dataset download utilities
+    ├── data_loader.py        # PyTorch data loaders
+    ├── benchmark.py          # Training and evaluation utilities
+    ├── plots.py              # Visualization utilities
+    ├── models/
+    │   ├── __init__.py
+    │   ├── lstm.py           # LSTM classifier
+    │   ├── cnn.py            # 1D CNN classifier
+    │   ├── rnn.py            # GRU-based RNN classifier
+    │   └── vae.py            # VAE classifier
+    └── visual_apps/          # Interactive demo application
         ├── __init__.py
-        ├── lstm.py      # LSTM classifier
-        ├── cnn.py       # 1D CNN classifier
-        ├── rnn.py       # GRU-based RNN classifier
-        └── vae.py       # VAE classifier
+        ├── app.py            # Main Streamlit application
+        ├── components/       # UI components
+        │   ├── __init__.py
+        │   └── prediction_viewer.py
+        └── utils/            # Helper utilities
+            ├── __init__.py
+            └── model_loader.py
 ```
 
 ## Setup
@@ -95,7 +115,41 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-## Usage
+## Quick Start: Interactive Demo 🚀
+
+Want to explore the models interactively? We have a web-based demo!
+
+### 1. Install dependencies
+```bash
+pip install -r requirements_visual.txt
+```
+
+### 2. Download dataset (if not already done)
+```bash
+python -c "from src.download_data import download_all_datasets; download_all_datasets()"
+```
+
+### 3. Train a demo model (~5 seconds)
+```bash
+python scripts/train_demo_models.py
+```
+
+### 4. Launch the interactive demo
+```bash
+streamlit run src/visual_apps/app.py
+```
+
+Your browser will open at `http://localhost:8501` with an interactive interface to:
+- Explore predictions on individual ECG samples
+- View model confidence scores
+- Visualize time series data
+- Compare different models (after training more)
+
+**For full documentation**: See [QUICKSTART_VISUAL.md](QUICKSTART_VISUAL.md) or [README_VISUAL.md](README_VISUAL.md)
+
+---
+
+## Usage (Command Line Benchmarking)
 
 ### Step 1: Download datasets
 
